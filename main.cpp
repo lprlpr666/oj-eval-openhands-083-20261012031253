@@ -1,0 +1,122 @@
+#include <iostream>
+using namespace std;
+
+// Node structure for singly circular linked list
+struct Node {
+    int data;
+    Node* next;
+    
+    Node(int val) : data(val), next(nullptr) {}
+};
+
+class CircularLinkedList {
+private:
+    Node* head;
+    int size;
+    
+public:
+    CircularLinkedList() : head(nullptr), size(0) {}
+    
+    // Build circular linked list with n nodes (1 to n)
+    void buildList(int n) {
+        if (n <= 0) return;
+        
+        head = new Node(1);
+        Node* current = head;
+        
+        for (int i = 2; i <= n; i++) {
+            current->next = new Node(i);
+            current = current->next;
+        }
+        
+        // Make it circular
+        current->next = head;
+        size = n;
+    }
+    
+    // Remove the m-th node starting from current position
+    // Returns the removed node's value
+    int removeMthNode(int m) {
+        if (head == nullptr || size == 0) return -1;
+        
+        // If only one node left
+        if (size == 1) {
+            int value = head->data;
+            delete head;
+            head = nullptr;
+            size = 0;
+            return value;
+        }
+        
+        // Find the node before the one to be removed
+        Node* prev = head;
+        
+        // Move (m-2) steps to find the node before the one to remove
+        // For m=1, we need to move (size-1) steps to find the node before head
+        int steps = (m - 2) % size;
+        if (steps < 0) steps += size;
+        
+        for (int i = 0; i < steps; i++) {
+            prev = prev->next;
+        }
+        
+        // The node to remove is prev->next
+        Node* toRemove = prev->next;
+        int value = toRemove->data;
+        
+        // Remove the node
+        prev->next = toRemove->next;
+        
+        // Update head if we removed the head
+        if (toRemove == head) {
+            head = toRemove->next;
+        }
+        
+        delete toRemove;
+        size--;
+        
+        // The new starting point is the node after the removed one
+        head = prev->next;
+        
+        return value;
+    }
+    
+    int getSize() const {
+        return size;
+    }
+    
+    bool isEmpty() const {
+        return size == 0;
+    }
+    
+    // Destructor to clean up memory
+    ~CircularLinkedList() {
+        if (head == nullptr) return;
+        
+        Node* current = head;
+        Node* nextNode = nullptr;
+        
+        // Break the circle to avoid infinite loop
+        do {
+            nextNode = current->next;
+            delete current;
+            current = nextNode;
+        } while (current != head);
+    }
+};
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+    
+    CircularLinkedList list;
+    list.buildList(n);
+    
+    // Simulate the Josephus Ring process
+    while (!list.isEmpty()) {
+        int removed = list.removeMthNode(m);
+        cout << removed << endl;
+    }
+    
+    return 0;
+}
